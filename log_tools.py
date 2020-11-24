@@ -1,4 +1,6 @@
 import logging 
+from pymongo import monitoring
+import sys
 
 class CommandLogger(monitoring.CommandListener):
 
