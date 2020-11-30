@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+This is the database side code. It creates a new database if no CSV datafiles are found
+Or else updates them if the old file is older than a year.
+"""
 import pandasdmx as sdmx
 import pymongo
 from pymongo import monitoring, MongoClient, ASCENDING, DESCENDING
@@ -15,6 +20,13 @@ import traceback
 import urllib
 from xml.etree import ElementTree
 import country_converter as coco
+
+__author__ = "Benkuang Xiong, Guansu (Frances) Niu, Sayan Samanta, and Wanxin (Christina) Ye"
+__license__ = "GPL"
+__maintainer__ = "Sayan Samanta"
+__email__ = "sayan_samanta@brown.edu"
+__status__ = "Production"
+
 
 MONGO_URI = 'mongodb+srv://sayan:infinity@infinity.9hew3.mongodb.net/<dbname>?retryWrites=true&w=majority'
 #MONGO_URI = 'localhost:27017'
@@ -108,6 +120,9 @@ def create_database():
         client.close()
 
 def decoding_codes(df_ebal):
+    """
+    Replaces the dataflow codes to human readable format
+    """
     f = urllib.request.urlopen("https://data.un.org/ws/rest/codelist/unsd/CL_AREA/").read()
     root = ElementTree.fromstring(f)
     area_dict = {}
