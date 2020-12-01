@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+This is the database side code. It creates a new database if no CSV datafiles are found
+Or else updates them if the old file is older than a year.
+"""
 import pandasdmx as sdmx
 import pymongo
 from pymongo import monitoring, MongoClient, ASCENDING, DESCENDING
@@ -12,6 +17,16 @@ from timeloop import Timeloop
 import os
 import sys
 import traceback
+import urllib
+from xml.etree import ElementTree
+import country_converter as coco
+
+__author__ = "Benkuang Xiong, Guansu (Frances) Niu, Sayan Samanta, and Wanxin (Christina) Ye"
+__license__ = "GPL"
+__maintainer__ = "Sayan Samanta"
+__email__ = "sayan_samanta@brown.edu"
+__status__ = "Production"
+
 
 MONGO_URI = 'mongodb+srv://sayan:infinity@infinity.9hew3.mongodb.net/<dbname>?retryWrites=true&w=majority'
 #MONGO_URI = 'localhost:27017'
@@ -77,8 +92,20 @@ def create_database():
 
         df_ebal = pd.read_csv(EBAL_FILE)
         df_unfcc = pd.read_csv(UNFCC_FILE)
+        df_ebal = decoding_codes(df_ebal)
+
+        coco_dict = {}
+        for i in df_ebal["REF_AREA"].unique():
+            #     if i not in coco_dict:
+                coco_dict[i] = coco.convert(i, to='iso3')
+                coco_dict["France-Monaco"] = coco.convert("France", to='iso3')
+                coco_dict["Italy-San Marino"] = coco.convert("Italy", to='iso3')
+                coco_dict["Switzerland-Liechtenstein"] = coco.convert("Switzerland", to='iso3')
+        df_ebal["REF_AREA"] = [coco_dict[i] for i in df_ebal["REF_AREA"]]
+
         data_json_unfcc = json.loads(df_unfcc.to_json(orient='records'))
         data_json_ebal = json.loads(df_ebal.to_json(orient='records'))
+
 
         result = coll_ebal.insert_many(data_json_ebal)
         logger.info('Inserted a total of {} records in EBAL'.format(len(result.inserted_ids)))
@@ -91,6 +118,44 @@ def create_database():
 
     finally:
         client.close()
+
+def decoding_codes(df_ebal):
+    """
+    Replaces the dataflow codes to human readable format
+    """
+    f = urllib.request.urlopen("https://data.un.org/ws/rest/codelist/unsd/CL_AREA/").read()
+    root = ElementTree.fromstring(f)
+    area_dict = {}
+    for ele in root[1][0][0][2:]:
+        try:
+            area_dict[ele.attrib["id"]] = ele[0].text
+        except AttributeError:
+            continue
+
+    f = urllib.request.urlopen("https://data.un.org/ws/rest/codelist/unsd/CL_COMMODITY_ENERGY_BALANCE_UNDATA/").read()
+    root = ElementTree.fromstring(f)
+    comm_dict = {}
+    for ele in root[1][0][0][1:]:
+        try:
+            comm_dict[ele.attrib["id"]] = ele[0].text
+        except AttributeError:
+            continue
+
+    f = urllib.request.urlopen("https://data.un.org/ws/rest/codelist/unsd/CL_TRANS_ENERGY_BALANCE_UNDATA/").read()
+    root = ElementTree.fromstring(f)
+    trans_dict = {}
+    for ele in root[1][0][0][1:]:
+        try:
+            trans_dict[ele.attrib["id"]] = ele[0].text
+        except AttributeError:
+            continue
+
+    df_ebal["COMMODITY"] = [comm_dict[i] for i in df_ebal["COMMODITY"].values]
+    df_ebal["TRANSACTION"] = [trans_dict[i] for i in df_ebal["TRANSACTION"].values]
+    df_ebal["REF_AREA"] = [area_dict["{:03d}".format(i)] for i in df_ebal["REF_AREA"].values]
+
+
+    return df_ebal
 
 def create_index():
     """
@@ -120,24 +185,30 @@ def update_database(df,label):
 
         if label == 'unfcc':
             coll = db.get_collection('unfcc')
-            logger.info('Getting UNFCC data from monogoDB')
+            coll.delete_many({})
+            logger.info('Getting UNFCC data from mongoDB')
         else:
             coll = db.get_collection('ebal')
-            logger.info('Getting Energy Balance data from monogoDB')
+            coll.delete_many({})
+            logger.info('Getting Energy Balance data from mongoDB')
 
         logger.info('Starting Update...')
-        for record in json.loads(df.to_json(orient='records')):
-            try:
-                result = coll.replace_one(filter=record, # locate the document if exists
-                                      replacement=record,  # latest document
-                                      upsert=True)         # update if exists, insert if not
-                if result.raw_result['updatedExisting']:
-                    logger.info('Update existing record')
-                else:
-                    logger.info('Added new record: {}'.format(result.upserted_id))
-            except pymongo.errors.ConnectionFailure as e:
-                logger.error('PyMongo error ConnectionFailure seen: ' + str(e))
-                traceback.print_exc(file = sys.stdout)
+
+        data_json = json.loads(df.to_json(orient='records'))
+
+        coll.insert_many(data_json)
+        #for record in json.loads(df.to_json(orient='records')):
+        #    try:
+        #        result = coll.replace_one(filter=record, # locate the document if exists
+        #                              replacement=record,  # latest document
+        #                              upsert=True)         # update if exists, insert if not
+        #        if result.raw_result['updatedExisting']:
+        #            logger.info('Update existing record')
+        #        else:
+        #            logger.info('Added new record: {}'.format(result.upserted_id))
+        #    except pymongo.errors.ConnectionFailure as e:
+        #        logger.error('PyMongo error ConnectionFailure seen: ' + str(e))
+        #        traceback.print_exc(file = sys.stdout)
         #data_json = json.loads(df.to_json(orient='records'))
         #result = coll.insert_many(data_json)
         #logger.info('Inserted a total of {} records in UNFCC'.format(len(result.inserted_ids)))
@@ -157,19 +228,26 @@ Maybe in the future we will only get and put data for the latest year and ignore
 def get_updated_records(label):
 
     if label == 'unfcc':
-        old_df = pd.read_csv('old_'+UNFCC_FILE)
-        new_df = pd.read_csv(UNFCC_FILE)
+        #old_df = pd.read_csv('old_'+UNFCC_FILE)
+        df = pd.read_csv(UNFCC_FILE)
     else:
-        old_df = pd.read_csv('old_'+EBAL_FILE)
-        new_df = pd.read_csv(EBAL_FILE)
+        #old_df = pd.read_csv('old_'+EBAL_FILE)
+        df = pd.read_csv(EBAL_FILE)
+        df = decoding_codes(df)
+        coco_dict = {}
+        for i in df["REF_AREA"].unique():
+            #     if i not in coco_dict:
+            coco_dict[i] = coco.convert(i, to='iso3')
+            coco_dict["France-Monaco"] = coco.convert("France", to='iso3')
+            coco_dict["Italy-San Marino"] = coco.convert("Italy", to='iso3')
+            coco_dict["Switzerland-Liechtenstein"] = coco.convert("Switzerland", to='iso3')
+        df["REF_AREA"] = [coco_dict[i] for i in df["REF_AREA"]]
     #update_df = new_df[~new_df.apply(tuple,1).isin(old_df.apply(tuple,1))]
     #update_df = pd.concat([old_df,new_df]).drop_duplicates(keep=False)
-    update_df = new_df
-    update_database(update_df,label)
+    update_database(df,label)
 
 
 t1 = Timeloop()
-
 @t1.job(interval=timedelta(seconds=60))
 def _worker():
     """
@@ -199,8 +277,9 @@ def _worker():
 
 if __name__ == "__main__":
     t1.start(block=True)
-
-
+#    create_database()
+#    get_updated_records('unfcc')
+#    get_updated_records('ebal')
 
 
 

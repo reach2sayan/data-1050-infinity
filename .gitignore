@@ -1,0 +1,8 @@
+.ipynb_checkpoints/*
+*.csv
+*.log
+__pycache__/
+*.pyc
+.DS_STORE
+.env
+credentials/
