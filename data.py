@@ -31,8 +31,8 @@ __status__ = "Production"
 MONGO_URI = 'mongodb+srv://sayan:infinity@infinity.9hew3.mongodb.net/<dbname>?retryWrites=true&w=majority'
 #MONGO_URI = 'localhost:27017'
 LOG_FILE = 'infinity.log'
-EBAL_FILE = 'data_ebal.csv'
-UNFCC_FILE = 'data_unfcc.csv'
+EBAL_FILE = './data/data_ebal.csv'
+UNFCC_FILE = '/data/data_unfcc.csv'
 
 logger = logging.Logger(__name__)
 log_tools.setup_log(logger, LOG_FILE)
