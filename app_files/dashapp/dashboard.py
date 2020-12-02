@@ -100,15 +100,13 @@ def init_callbacks(app,df_ebal,df_unfcc,palette):
 
         return fig
 
-
-# Sayan's plots here, World map + Dropdowns - Pie + Bar
-#@app.callback(
-#    Output("PIE_CHART", 'figure'),
-#    Output("BAR_CHART", 'figure'),
-#    Input("TRANSACTION_DPDN", 'value'),
-#    Input("COMMODITY_DPDN", 'value'),
-#    Input("WORLD_MAP", 'clickData'),
-#)
+    @app.callback(
+        Output("PIE_CHART", 'figure'),
+        Output("BAR_CHART", 'figure'),
+        Input("TRANSACTION_DPDN", 'value'),
+        Input("COMMODITY_DPDN", 'value'),
+        Input("WORLD_MAP", 'clickData'),
+    )
     def plot_pie_bar(trans, comm, country):
         """
         :param trans: The transaction currently selected
@@ -117,32 +115,46 @@ def init_callbacks(app,df_ebal,df_unfcc,palette):
             has format like:
             {'points': [{'curveNumber': 0, 'pointNumber': 36, 'pointIndex': 36, 'location': 'CHN', 'z': 271769.93042857136}]}
         """
+        if country is None:
+            return go.Figure(), go.Figure()
+        country = country['points'][0]['location']
+        
+        plot_df_pie = df_ebal.query("(TRANSACTION == @transactions) and (COMMODITY == @comm)").reset_index(drop=True)
+        plot_df_pie = plot_df_pie.query("(TIME_PERIOD in '1990') and (REF_AREA in '{}')".format(country))
+        plot_df_bar = df_ebal.query("(TRANSACTION == @trans) and (COMMODITY == @commodities)").reset_index(drop=True)
+        plot_df_bar = plot_df_bar.query("(TIME_PERIOD in '1990') and (REF_AREA in '{}')".format(country))
+        
 
-        # Change code below
-        pie_fig = bar_fig = go.Figure()
-        pie_fig.add_trace(go.Choropleth(
-            locations=[country['points'][0]['location']],
-            z=[1]
-        ))
-        pie_fig.update_layout(
+        bar_fig = go.Figure()
+        for transaction, group in plot_df_bar.groupby("TRANSACTION"):
+            bar_fig.add_trace(go.Bar(x=group["COMMODITY"], y=group["value"],name=transaction))
+        
+        bar_fig.update_layout(legend_title_text = "{} Distribution among Commodities in {}".format(trans,country))
+        bar_fig.update_xaxes(title_text="Commodity")
+        bar_fig.update_yaxes(title_text="Energy (in TJ)")
+        bar_fig.update_layout(
             margin={"r":0,"t":0,"l":0,"b":0},
             dragmode=False,
-        #     range=[-90, 50],
-            geo={
-                'showocean': True,
-                'oceancolor': palette['ocean'],
-                'showlakes': True,
-                'lakecolor': palette['lake'],
-                'showcoastlines': False,
-                'landcolor': palette['background'],
-            },
             plot_bgcolor=palette['background'],
             paper_bgcolor=palette['background'],
             font_color=palette['text'],
         )
-
+    
+    
+    
+        pie_fig = go.Figure()
+        pie_fig.add_trace(go.Pie(labels=plot_df_pie['TRANSACTION'].unique(), values=plot_df_pie['value'],
+                             name=comm,showlegend=False))
+        pie_fig.update_layout(
+            margin={"r":0,"t":0,"l":0,"b":0},
+            dragmode=False,
+            plot_bgcolor=palette['background'],
+            paper_bgcolor=palette['background'],
+            font_color=palette['text'],
+        )
+        pie_fig.update_traces(hole=.6, hoverinfo="label+percent+name")
+        
         return pie_fig, bar_fig
-
 #app.run_server(debug=False)
 
 def init_dashboard(server):
@@ -153,6 +165,9 @@ def init_dashboard(server):
     db = client.UNSD
     col_ebal = db.ebal
     col_unfcc = db.unfcc
+
+    global commodities
+    global transactions
 
     commodities = [
         'Oil Products',
