@@ -28,8 +28,8 @@ __email__ = "sayan_samanta@brown.edu"
 __status__ = "Production"
 
 
-MONGO_URI = 'mongodb+srv://sayan:infinity@infinity.9hew3.mongodb.net/<dbname>?retryWrites=true&w=majority'
-#MONGO_URI = 'localhost:27017'
+#MONGO_URI = 'mongodb+srv://sayan:infinity@infinity.9hew3.mongodb.net/<dbname>?retryWrites=true&w=majority'
+MONGO_URI = 'localhost:27017'
 LOG_FILE = '../../logs/infinity.log'
 EBAL_FILE = '../../data_files/data_ebal.csv'
 UNFCC_FILE = '../../data_files/data_unfcc.csv'
@@ -276,8 +276,8 @@ def _worker():
         logger.warning('Main Loop error')
 
 if __name__ == "__main__":
-    t1.start(block=True)
-#    create_database()
+#    t1.start(block=True)
+    create_database()
 #    get_updated_records('unfcc')
 #    get_updated_records('ebal')
 
