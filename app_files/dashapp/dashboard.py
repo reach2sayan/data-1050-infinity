@@ -14,6 +14,7 @@ import dash_html_components as html
 import plotly.express as px
 from dash.dependencies import Input, Output
 from plotly.subplots import make_subplots
+import dash_bootstrap_components as dbc
 
 from .layout import html_layout
 
@@ -125,6 +126,11 @@ def init_callbacks(app):
                        'x':0.5,
                        'xanchor': 'center',
                        'yanchor': 'top'},
+                legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="left",
+                    x=0.01),
                 xaxis_title = "Year",
                 font = dict(size=12),
                 hovermode = "x unified",
@@ -219,10 +225,10 @@ def init_callbacks(app):
         for transaction, group in plot_df_bar.groupby("TRANSACTION"):
             bar_fig.add_trace(go.Bar(x=group["COMMODITY"], y=group["value"],name=transaction))
         
-        bar_fig.update_layout(title="Energy Distribution of {} across all Commodities in {} {}".format(trans,str(year),country)),
-        bar_fig.update_xaxes(title_text="Commodity")
+        #bar_fig.update_xaxes(title_text="Commodity")
         bar_fig.update_yaxes(title_text="Energy (in TJ)")
         bar_fig.update_layout(
+            title="Distribution of {} across all Commodities in {} {}".format(trans,str(year),country),
             margin={"r":0,"t":0,"l":0,"b":0},
             dragmode=False,
             plot_bgcolor=palette['background'],
@@ -321,8 +327,16 @@ def init_dashboard(server):
 
 
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-    app = dash.Dash(__name__, server=server, external_stylesheets=external_stylesheets)
-
+    #app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.CYBORG])
+    app = dash.Dash(__name__,
+        server=server,
+        routes_pathname_prefix="/dashapp/",
+        external_stylesheets=[
+            "/static/dist/css/styles.css",
+            "https://fonts.googleapis.com/css?family=Lato",
+        ],
+    )
+    
 #    app.index_string = html_layout
 
     app.layout = html.Div(children=[
