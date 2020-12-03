@@ -238,8 +238,16 @@ def init_callbacks(app):
     
         pie_fig = go.Figure()
         pie_fig.add_trace(go.Pie(labels=plot_df_pie['TRANSACTION'].unique(), values=plot_df_pie['value'],
-                             name=comm,showlegend=False))
+                             name=comm,showlegend=True))
+
         pie_fig.update_layout(
+            legend=dict(
+                yanchor="auto",
+                #y=0.99,
+                xanchor="auto",
+                x=-0.5,
+                bgcolor='rgba(0,0,0,0)'
+               ),
             title='Distribution of {} across different transactions in {} {}'.format(trans,str(year),country),
             margin={"r":0,"t":0,"l":0,"b":0},
             dragmode=False,
@@ -247,7 +255,7 @@ def init_callbacks(app):
             paper_bgcolor=palette['background'],
             font_color=palette['text'],
         )
-        pie_fig.update_traces(hole=.6, hoverinfo="label+percent+name")
+        pie_fig.update_traces(hole=.2, hoverinfo="label+percent+name")
         
         return pie_fig, bar_fig
 #app.run_server(debug=False)
