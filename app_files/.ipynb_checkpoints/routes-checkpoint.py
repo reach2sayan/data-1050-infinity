@@ -9,6 +9,3 @@ def home():
         description='Course Project for DATA 1050 - Brown University',
         body='Thanks Flask'
     )
-#
-# @app.route('/js')
-# def
