@@ -342,6 +342,10 @@ def init_dashboard(server):
         external_stylesheets=[
             "/static/dist/css/styles.css",
             "https://fonts.googleapis.com/css?family=Lato",
+            "/static/dist/css/base.css",
+            "/static/dist/css/main.css",
+            "/static/dist/css/vendor.css",
+            "/static/dist/css/fonts.css"
         ],
     )
     

@@ -17,7 +17,6 @@ def compile_static_assets(assets):
         output="dist/css/styles.css",
         extra={"rel": "stylesheet/less"},
     )
-    assets.register("less_all", less_bundle)
     if app.config["FLASK_ENV"] == "development":
         less_bundle.build()
     return assets
