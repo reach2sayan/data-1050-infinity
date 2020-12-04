@@ -7,5 +7,11 @@ def home():
         'index.html',
         title='World Energy and Greenhouse Emission Dashboard',
         description='Course Project for DATA 1050 - Brown University',
-        body='Thanks Flask'
+    )
+
+@app.route('/pd')
+def project_description():
+    return render_template(
+        'pd.html',
+        title='Project Description'
     )

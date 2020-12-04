@@ -13,6 +13,7 @@ def compile_static_assets(assets):
     assets.debug = False
     less_bundle = Bundle(
         "less/*.less",
+        "css/*.css",
         filters="less,cssmin",
         output="dist/css/styles.css",
         extra={"rel": "stylesheet/less"},

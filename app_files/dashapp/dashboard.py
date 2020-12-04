@@ -341,8 +341,9 @@ def init_dashboard(server):
         routes_pathname_prefix="/dashapp/",
         external_stylesheets=[
             "/static/dist/css/styles.css",
-            "https://fonts.googleapis.com/css?family=Lato",
-#            "/static/dist/css/base.css",
+            "https://fonts.googleapis.com/css?family=Montserrat:300,400,500,700|Open+Sans:300,300i,400,400i,700,700i"
+#            "https://fonts.googleapis.com/css?family=Lato",
+            "/static/dist/css/styles2.css",
 #            "/static/dist/css/main.css",
 #            "/static/dist/css/vendor.css",
 #            "/static/dist/css/fonts.css"
