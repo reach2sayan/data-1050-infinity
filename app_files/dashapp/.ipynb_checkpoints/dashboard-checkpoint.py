@@ -157,7 +157,7 @@ def init_callbacks(app):
 
             # Set y-axes titles
             fig.update_yaxes(
-                title_text="Quantity in Tera Joules",
+                title_text="Quantity in HSO",
                 secondary_y=False)
             fig.update_yaxes(
                 title_text="CO2 Emission in kilotonne CO2 equivalent",
@@ -264,9 +264,9 @@ def init_callbacks(app):
                 xanchor="auto",
                 x=-0.5,
                 bgcolor='rgba(0,0,0,0)'
-               ),
-            #title='Distribution of {} across different transactions in {} {}'.format(comm,str(year),country),
-            margin={"r":0,"t":0,"l":0,"b":0},
+            ),
+            # title='Distribution of {} across different transactions in {} {}'.format(trans, str(year), country),
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
             dragmode=False,
             plot_bgcolor=palette['background'],
             paper_bgcolor=palette['background'],
