@@ -475,6 +475,7 @@ def init_dashboard(server):
                     # assets_url_path="/static/dist/css/maps",
                     external_stylesheets=[
                         "/static/dist/css/maps/styles.css",
+                        "https://fonts.googleapis.com/css?family=Montserrat:300,400,500,700|Open+Sans:300,300i,400,400i,700,700i"
                         "https://fonts.googleapis.com/css?family=Lato",
                         "/static/dist/css/maps/base.css",
                         "/static/dist/css/maps/main.css",
@@ -482,8 +483,6 @@ def init_dashboard(server):
                         "/static/dist/css/maps/fonts.css",
                     ],
                     )
-
-    #    app.index_string = html_layout
 
     app.layout = html.Div(children=[
 
