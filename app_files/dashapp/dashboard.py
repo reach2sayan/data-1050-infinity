@@ -549,18 +549,18 @@ def init_dashboard(server):
                         figure=blank_fig,
                     )
                 ],
-                style={'display': 'inline-block', 'width': '60%'}
+                style={'display': 'inline-block', 'width': '100%'}
             ),
 
-            html.Div(
-                className='home-content-right',
-                children=[
-                    html.H3(["Country Summary"])
-                ],
-                style={'width': '40%', 'display': 'inline-block'},
-            ),
+            # html.Div(
+            #     className='home-content-right',
+            #     children=[
+            #         html.H3(["Country Summary"])
+            #     ],
+            #     style={'width': '40%', 'display': 'inline-block'},
+            # ),
             ],
-            style={'width': '80%', 'display': 'block', 'margin-right': 'auto', 'margin-left': 'auto'}
+            style={'width': '60%', 'display': 'block', 'margin-right': 'auto', 'margin-left': 'auto'}
         ),
 
         # Pie and bar

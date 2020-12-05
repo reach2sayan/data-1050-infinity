@@ -68,6 +68,11 @@
 			  <br>
 			  <li>The prediction is done using <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html"> Scikit-Learn Ridge Regression</a> model.</li>
 			</ul>
+            <h3>Data Access</h3>
+                        <p style="text-align :justify"> Our data is accessed through APIs provided by the United Nations. We have a program that checks for updates and pulls down new data when it detects that new versions have been uploaded. Upon access, the data is then preprocessed and inserted into a MongoDB cluster, which acts as the database that serves our website. </p>
+                        <p style="text-align :justify"> Preprocessing of our data involves several parts. The raw data acquired from the United Nations database is in SDMX format, which essentially means every entry in a table is stored as a separate element, instead of a part of a row or column element. As a supplement to this, there are codenames for all dimensions of every value, and codelists that map codenames to their actual English meaning. During preprocessing, we pull all of this information and transform the raw data into a Pandas Dataframe object which is then stored in MongoDB’s special BSON format. </p>
+                        <p style="text-align :justify"> We have two main datasets, each with a dimension that corresponds to country (area) in the world. However their codenames are slightly different, and in order to incorporate both dataframes into one idea, there will need to be a join operation, which will be made possible through decoding the country names with a Python package named country-converter. This step also assures that the new country name codes work well with future Plotly choropleth manipulations. </p>
+            <p style="text-align :justify"> Due to the size of our data, it would be inefficient to simply load everything each time an update is made on the front end. Therefore, we have an assortment of MongoDB queries for each action that specifies the exact location of the data we need, and pulls that portion down from our database. We have found that this process will be far more efficient both space and time wise.</p>
 		      </p>
  
                     </div> <!-- end of text-container -->
