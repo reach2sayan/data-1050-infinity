@@ -37,7 +37,7 @@
     <div id="details" class="basic-1">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6">
+                <!<div class="col-lg-6">
                     <div class="text-container">
                     <a class="btn-solid-lg" href="/">
                      <span class="icon-circle-down" aria-hidden="false"></span>Back to Main Page</a>
@@ -45,23 +45,29 @@
                         <h2>Project Description</h2>
                         <br>
                         <h3>Dataset</h3>
-                        <p>Our data provider is the United Nations Statistics Division, specifically the United Nations Greenhouse gas Emission Data and United Nations Energy Balance Data dataflows. The data is indexed in 5 broad data flows each sharing the same structure that are indexed by common dimensions (codelists) such as units of the data, the country/area of origin and other labels necessary to identify the quantity that is being reported. For eg. the UN Energy balance database reports total energy (primarily in unit Terajoules) usage of each country among different sources (Commodities) eg. Nuclear Energy, Hydropower etc. and different avenues eg. Imports, Exports etc. In a particular set of identifiers eg. Imports of Nuclear Energy by Afghanistan are tabulated year wise. Each of those dataflows have an annual update schedule and thus it suffices to check for the recency of the database on the application start-up. Since the inconsistency of the number of dimensions and sub-dimensions for any given data point across the different dataflows make it hard to enforce any efficient schema on the dataset. We chose to go the NoSQL way using MongoDB as our database server.
+                        <p style="text-align :justify">Our data provider is the United Nations Statistics Division, specifically the United Nations Greenhouse gas Emission Data and United Nations Energy Balance Data dataflows. The data is indexed in 5 broad data flows each sharing the same structure that are indexed by common dimensions (codelists) such as units of the data, the country/area of origin and other labels necessary to identify the quantity that is being reported. For eg. the UN Energy balance database reports total energy (primarily in unit Terajoules) usage of each country among different sources (Commodities) eg. Nuclear Energy, Hydropower etc. and different avenues eg. Imports, Exports etc. In a particular set of identifiers eg. Imports of Nuclear Energy by Afghanistan are tabulated year wise. Each of those dataflows have an annual update schedule and thus it suffices to check for the recency of the database on the application start-up. Since the inconsistency of the number of dimensions and sub-dimensions for any given data point across the different dataflows make it hard to enforce any efficient schema on the dataset. We chose to go the NoSQL way using MongoDB as our database server.
 
 In our MongoDB collection UNSD, we have two databases, ebal and unfcc, and two indexes, reference area and year. The unfcc database has 814,160 documents that reveal the commodity transaction over the years. Each document has an assigned unique id, a country, a commodity, a type of transaction, unit of quantity, a year and a value of quantity. The unfcc database has 8,025 documents that show greenhouse gas emission over the years. Each document has an assigned unique id, a type of greenhouse gas, a country, a year and a value of quantity. The unfcc database does not contain all the countries in the ebal database, therefore on our dashboards, you will see some countries do not contain emission data. </p>
-                        <ul class="list-unstyled li-space-lg">
-                            <li class="media">
-                                <i class="fas fa-square"></i>
-                                <div class="media-body">Understand customers and meet their requirements</div>
-                            </li>
-                            <li class="media">
-                                <i class="fas fa-square"></i>
-                                <div class="media-body">Targeted client base with Tivo's efficient technology</div>
-                            </li>
-                        </ul>
+			<h3>Web Development Process</h3>
+		      <p style="text-align :justify">
+			<ul style="padding-bottom: 30px;">
+			  <li> Our primary dashboard is a Dash App. We have used <a href="https://flask.palletsprojects.com/en/1.1.x/"> Flask</a> container as a web server gateway interface which serves our dashboard as a page while linking the Project Description and the Landing page.</li>
+			  <br>
+			  <li> The Project Description and Landing pages are HTML pages stylised with Bootstrap stylesheets.</li>
+			  <br>
+			  <li> The Flask container is hosted at a local <a href="https://www.raspberrypi.org/">Raspberry Pi 3B+</a> (with Raspbian 10 buster) connected to my home WiFi. We obtained a free dynamic DNS from <a href="www.noip.com">No-Ip</a> that has the IP of my home router as the target while traffic from router to the Pi is done by port-forwarding. Thus our web-hosting solution is completely free (I use that Pi as a spare clock) and in-house, available online anywhere on the internet 24x7.</li>
+			  <br>
+			  <li> Our database server unfortunately had to hosted at <a href="https://cloud.mongodb.com">MongoDB Atlas</a> (Free Sandbox cluster), since the Raspbian system of the Pi did not support PyMongo version > 2.0. Our attempts at installing a debian OS to bypass this did not work as the OS seemed to be crashing each time. We can possibly look at this in the future, to make both the front and back-end free and in-house.</li>
+			  <br>
+			  <li> All the visualisation are done in <a href="https://plotly.com">Plotly</a>.</li>
+			  <br>
+			  <li>The prediction is done using <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html"> Scikit-Learn Ridge Regression</a> model.</li>
+			</ul>
+		      </p>
  
                     </div> <!-- end of text-container -->
-                </div> <!-- end of col -->
-                </div> <!-- end of col -->
+                <!</div> <!-- end of col -->
+                <!</div> <!-- end of col -->
             </div> <!-- end of row -->
         </div> <!-- end of container -->
     </div> <!-- end of basic-1 -->
