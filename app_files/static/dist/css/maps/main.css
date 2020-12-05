@@ -1675,7 +1675,13 @@ html[data-useragent*='MSIE 10.0'] .home-scrolldown,
   .home-content-left {
     padding: 18rem 0 12rem 40px;
   }
+  .home-content-right {
+    padding: 18rem 0 12rem 40px;
+  }
   .home-content-left h3 {
+    font-size: 1.5rem;
+  }
+  .home-content-right h3 {
     font-size: 1.5rem;
   }
   .home-content-left h1 {
