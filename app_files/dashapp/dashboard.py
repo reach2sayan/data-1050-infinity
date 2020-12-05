@@ -15,6 +15,9 @@ import plotly.express as px
 from dash.dependencies import Input, Output
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
+from sklearn.linear_model import Ridge
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import PolynomialFeatures
 
 from .layout import html_layout
 
@@ -42,7 +45,15 @@ def init_callbacks(app):
             go.Choropleth(
                 locations=plot_df.index,
                 z=plot_df.values,
-                colorscale="Viridis",
+                # colorscale="Viridis",
+                colorscale=[
+                    [0, "#519fd0"],
+                    [0.2, "#7bb2d4"],
+                    [0.4, "#fedfe1"],
+                    [0.6, "#e7a5a5"],
+                    [0.8, "#ce4c69"],
+                    [1, "#993439"],
+                ],
                 marker_line_color='white',
                 marker_line_width=0.5,
             )
@@ -182,6 +193,7 @@ def init_callbacks(app):
     @app.callback(
         Output("PIE_CHART", 'figure'),
         Output("BAR_CHART", 'figure'),
+        Output("TRANCOMM_LINE", 'children'),
         Input("TRANSACTION_DPDN", 'value'),
         Input("COMMODITY_DPDN", 'value'),
         Input("COUNTRY_SUMMARY", 'clickData'),
@@ -221,19 +233,18 @@ def init_callbacks(app):
                                                   })
                                    )
 
-        # plot_df_pie = df_ebal.query("(TRANSACTION == @transactions) and (COMMODITY == @comm)").reset_index(drop=True)
-        # plot_df_pie = plot_df_pie.query("(TIME_PERIOD in '{}') and (REF_AREA in '{}')".format(str(year),country))
-        # plot_df_bar = df_ebal.query("(TRANSACTION == @trans) and (COMMODITY == @commodities)").reset_index(drop=True)
-        # plot_df_bar = plot_df_bar.query("(TIME_PERIOD in '{}') and (REF_AREA in '{}')".format(str(year),country))
-
         bar_fig = go.Figure()
         for transaction, group in plot_df_bar.groupby("TRANSACTION"):
-            bar_fig.add_trace(go.Bar(x=group["COMMODITY"], y=group["value"], name=transaction))
+            bar_fig.add_trace(go.Bar(
+                x=group["COMMODITY"],
+                y=group["value"],
+                name=transaction,
+            ))
 
         # bar_fig.update_xaxes(title_text="Commodity")
         bar_fig.update_yaxes(title_text="Energy (in TJ)")
         bar_fig.update_layout(
-            title="Distribution of {} across all Commodities in {} {}".format(trans, str(year), country),
+            # title="Distribution of {} across all Commodities in {} {}".format(trans, str(year), country),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             dragmode=False,
             plot_bgcolor=palette['background'],
@@ -243,7 +254,8 @@ def init_callbacks(app):
 
         pie_fig = go.Figure()
         pie_fig.add_trace(go.Pie(labels=plot_df_pie['TRANSACTION'].unique(), values=plot_df_pie['value'],
-                                 name=comm, showlegend=True))
+                                 name=comm, showlegend=True, )
+                                 )
 
         pie_fig.update_layout(
             legend=dict(
@@ -253,7 +265,7 @@ def init_callbacks(app):
                 x=-0.5,
                 bgcolor='rgba(0,0,0,0)'
             ),
-            title='Distribution of {} across different transactions in {} {}'.format(trans, str(year), country),
+            # title='Distribution of {} across different transactions in {} {}'.format(trans, str(year), country),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             dragmode=False,
             plot_bgcolor=palette['background'],
@@ -262,7 +274,20 @@ def init_callbacks(app):
         )
         pie_fig.update_traces(hole=.2, hoverinfo="label+percent+name")
 
-        return pie_fig, bar_fig
+        line = [
+            html.H3(
+                children=[
+                    "Transaction and Commodity Summary",
+                    html.Br(),
+                    "For {}".format(country),
+                ],
+                style={
+                    'font-size': '6rem',
+                    'text-align': 'center'
+                }
+            )
+        ]
+        return pie_fig, bar_fig, line
 
     @app.callback(
         Output("PRED_LINE", 'children'),
@@ -270,17 +295,101 @@ def init_callbacks(app):
         Input("COMMODITY_DPDN", 'value'),
         Input("WORLD_MAP", 'clickData'),
     )
-    def plot_pie_bar(trans, comm, country):
+    def gen_preds(trans, comm, country, window=6, model_func=Ridge):
 
-        pred = 0
+        if country is None:
+            country = 'USA'
+        else:
+            country = country['points'][0]['location']
+
+        pred_df_ebal = pd.DataFrame(col_ebal.find({'TRANSACTION': trans, 'COMMODITY': comm}))
+        pred_df_ebal = pred_df_ebal.groupby(["TIME_PERIOD", "REF_AREA"])["value"].sum().unstack(level=1)
+
+        if pred_df_ebal.shape[0] != 0:
+
+            nan_areas = pred_df_ebal.columns[pd.isna(pred_df_ebal).mean(axis=0) == 1]
+            pred_df_ebal = pred_df_ebal.drop(nan_areas, axis=1)
+
+            if country in pred_df_ebal.columns:
+
+                im = SimpleImputer()
+                train_data = np.transpose(im.fit_transform(pred_df_ebal), (1, 0))
+                model = model_func()
+
+                X = []
+                y = []
+                for i in range(train_data.shape[1] - window - 1):
+                    X.append(train_data[:, i:(i + window)])
+                    y.append(train_data[:, i + window])
+                train_X = np.concatenate(X[:-1])
+                train_y = np.concatenate(y[:-1])
+                model.fit(train_X, train_y)
+
+                pred = model.predict(pred_df_ebal.loc[:, country].values[-window:].reshape(1, -1))[0]
+
+                mill_inds = ['', 'K', 'M', 'B', 'T']
+                num_mill = int(np.floor(np.log10(abs(pred)))) // 3
+                pred_string = "{:.1f}".format(pred / (10 ** (num_mill * 3))) + mill_inds[num_mill]
+
+                return [
+                    html.H3([
+                        "Based on previous data, we predict",
+                        ],
+                        style={'font-size': '3rem', 'text-align': 'center'}
+                    ),
+                    html.H3([
+                        trans,
+                    ],
+                        style={'font-size': '6rem', 'text-align': 'center'}
+                    ),
+                    html.H3([
+                        "for",
+                    ],
+                        style={'font-size': '3rem', 'text-align': 'center'}
+                    ),
+                    html.H3([
+                        comm,
+                        " in ",
+                        country,
+                    ],
+                        style={'font-size': '6rem', 'text-align': 'center'}
+                    ),
+                    html.H3([
+                        "next year to be",
+                    ],
+                        style={'font-size': '3rem', 'text-align': 'center'}
+                    ),
+                    html.H3([pred_string], style={'font-size': '40rem', 'text-align': 'center'}),
+                ]
+
         return [
             html.H3([
-                "We predict {} for {} next year to be".format(
-                    trans, comm,
-                )],
+                "Due to lack of previous data, we are unable to predict next year's",
+            ],
+                style={'font-size': '3rem', 'text-align': 'center'}
+            ),
+            html.H3([
+                trans,
+            ],
                 style={'font-size': '6rem', 'text-align': 'center'}
             ),
-            html.H3(["{:.2f}".format(pred)], style={'font-size': '50rem', 'text-align': 'center'})
+            html.H3([
+                "for",
+            ],
+                style={'font-size': '3rem', 'text-align': 'center'}
+            ),
+            html.H3([
+                comm,
+                " in ",
+                country,
+            ],
+                style={'font-size': '6rem', 'text-align': 'center'}
+            ),
+            html.H3([
+                "at the moment.",
+            ],
+                style={'font-size': '3rem', 'text-align': 'center'}
+            ),
         ]
 
 
@@ -332,7 +441,7 @@ def init_dashboard(server):
         'background': 'rgba(0, 0, 0, 0)',
         'text': '#787c7a',
         'ocean': '#fcfaf2',
-        'lake': '#7bb2d4',
+        'lake': '#fcfaf2',
         'land': '#fcfaf2'
     }
     # df_unfcc_co2 = df_unfcc[df_unfcc['INDICATOR'] == 'EN_ATM_CO2E_XLULUCF']
@@ -459,12 +568,20 @@ def init_dashboard(server):
         html.Div([
 
             html.Div(
+                id="TRANCOMM_LINE",
                 className='home-content-left',
                 children=[
-                    html.H3(["Transaction and Commodity Summary"], style={
-                        'font-size': '6rem',
-                        'text-align': 'center'
-                    })
+                    html.H3(
+                        children=[
+                            "Transaction and Commodity Summary",
+                            html.Br(),
+                            "For USA"
+                        ],
+                        style={
+                            'font-size': '6rem',
+                            'text-align': 'center'
+                        }
+                    )
                 ],
                 style={'width': '100%', 'display': 'inline-block', 'margin-left': 'auto', 'margin-right': 'auto', }
             ),
@@ -476,7 +593,7 @@ def init_dashboard(server):
                         dcc.Graph(
                             id="PIE_CHART",
                             figure=blank_fig,
-                            style={'height': '600px'}
+                            style={'height': '550px'}
                         )],
                         style={'width': '40%', 'display': 'inline-block', 'margin-left': '0', 'margin-right': 'auto'}
                     ),
@@ -486,7 +603,7 @@ def init_dashboard(server):
                         dcc.Graph(
                             id="BAR_CHART",
                             figure=blank_fig,
-                            style={'height': '600px'}
+                            style={'height': '550px'}
                         )],
                         style={'width': '40%', 'display': 'inline-block', 'margin-right': '0', 'margin-left': 'auto'}
                     ),
