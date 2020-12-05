@@ -52,6 +52,7 @@ def init_callbacks(app):
             dragmode=False,
             #     range=[-90, 50],
             geo={
+                'showframe': False,
                 'showocean': True,
                 'oceancolor': palette['ocean'],
                 'showlakes': True,
@@ -62,6 +63,10 @@ def init_callbacks(app):
             plot_bgcolor=palette['background'],
             paper_bgcolor=palette['background'],
             font_color=palette['text'],
+            height=580,
+        )
+        fig.update_traces(
+            colorbar={'x': 0.93}, selector=dict(type='choropleth')
         )
         return fig
 
@@ -89,11 +94,11 @@ def init_callbacks(app):
         # plot_df_ebal = df_ebal.query("(TRANSACTION == @trans) and (COMMODITY == @comm) and (REF_AREA == @country)")
         plot_df_ebal = pd.DataFrame(col_ebal.find({'TRANSACTION': trans, 'COMMODITY': comm, 'REF_AREA': country}))
         if country in col_unfcc.distinct('REF_AREA'):
-            fig = go.Figure()
             fig = make_subplots(specs=[[{"secondary_y": True}]])
-            plot_df_unfcc = pd.DataFrame(col_unfcc.find({'INDICATOR': 'EN_ATM_CO2E_XLULUCF',
-                                                         'REF_AREA': country})
-                                         )
+            plot_df_unfcc = pd.DataFrame(
+                col_unfcc.find({'INDICATOR': 'EN_ATM_CO2E_XLULUCF',
+                                'REF_AREA': country})
+            )
 
             fig.add_trace(
                 go.Bar(
@@ -259,6 +264,25 @@ def init_callbacks(app):
 
         return pie_fig, bar_fig
 
+    @app.callback(
+        Output("PRED_LINE", 'children'),
+        Input("TRANSACTION_DPDN", 'value'),
+        Input("COMMODITY_DPDN", 'value'),
+        Input("WORLD_MAP", 'clickData'),
+    )
+    def plot_pie_bar(trans, comm, country):
+
+        pred = 0
+        return [
+            html.H3([
+                "We predict {} for {} next year to be".format(
+                    trans, comm,
+                )],
+                style={'font-size': '6rem', 'text-align': 'center'}
+            ),
+            html.H3(["{:.2f}".format(pred)], style={'font-size': '50rem', 'text-align': 'center'})
+        ]
+
 
 # app.run_server(debug=False)
 
@@ -307,9 +331,9 @@ def init_dashboard(server):
     palette = {
         'background': 'rgba(0, 0, 0, 0)',
         'text': '#787c7a',
-        'ocean': '#519fd0',
+        'ocean': '#fcfaf2',
         'lake': '#7bb2d4',
-        'land': '#d4c981'
+        'land': '#fcfaf2'
     }
     # df_unfcc_co2 = df_unfcc[df_unfcc['INDICATOR'] == 'EN_ATM_CO2E_XLULUCF']
     # df_inner = pd.merge(df_unfcc_co2, df_ebal_small, on=['REF_AREA','TIME_PERIOD'], how='inner')
@@ -341,12 +365,12 @@ def init_dashboard(server):
                     routes_pathname_prefix="/dashapp/",
                     # assets_url_path="/static/dist/css/maps",
                     external_stylesheets=[
-                        "/static/dist/css/styles.css",
+                        "/static/dist/css/maps/styles.css",
                         "https://fonts.googleapis.com/css?family=Lato",
-                        "/static/dist/css/base.css",
-                        "/static/dist/css/main.css",
-                        "/static/dist/css/vendor.css",
-                        "/static/dist/css/fonts.css",
+                        "/static/dist/css/maps/base.css",
+                        "/static/dist/css/maps/main.css",
+                        "/static/dist/css/maps/vendor.css",
+                        "/static/dist/css/maps/fonts.css",
                     ],
                     )
 
@@ -355,32 +379,46 @@ def init_dashboard(server):
     app.layout = html.Div(children=[
 
         # Page title
-        html.H1("World Map"),
+        html.Div(
+            className='home-content-left',
+            children=[
+                html.H1(["Energy Data Dashboards"], style={
+                    'color': '#0b1013', 'text-transform': 'capitalize', 'font-family': "'aqua grotesque', sans-serif"
+                }),
+                html.Div(
+                    children=[
+                        dcc.Dropdown(
+                            id='TRANSACTION_DPDN',
+                            options=[{'label': trans, 'value': trans} for trans in transactions],
+                            value=transactions[1],
+                        )
+                    ],
+                    style={"width": '20%', 'display': 'inline-block'},
+                ),
+                html.Div(
+                    children=[
+                        dcc.Dropdown(
+                            id='COMMODITY_DPDN',
+                            options=[{'label': comm, 'value': comm} for comm in commodities],
+                            value=commodities[0],
+                        ),
+                    ],
+                    style={"width": '20%', 'display': 'inline-block'},
+                ),
+            ],
+            style={'width': '100%', 'background': '#d4c98e', 'text-align': 'center',
+                   'font-size': '1.5rem', 'position': 'sticky', 'top': '0', 'padding': '50px', 'z-index': '100',
+                   'text-transform': 'uppercase', 'font-family': "'aqua grotesque', sans-serif"}
+        ),
+
+        html.Div(
+            style={'width': '100%', 'padding': '20px'}
+        ),
 
         # Dropdowns
-        html.Div([
-            html.Div(
-                children=[
-                    dcc.Dropdown(
-                        id='TRANSACTION_DPDN',
-                        options=[{'label': trans, 'value': trans} for trans in transactions],
-                        value=transactions[1],
-                    )
-                ],
-                style={"width": '49%', 'display': 'inline-block'},
-            ),
-            html.Div(
-                children=[
-                    dcc.Dropdown(
-                        id='COMMODITY_DPDN',
-                        options=[{'label': comm, 'value': comm} for comm in commodities],
-                        value=commodities[0],
-                    ),
-                ],
-                style={"width": '49%', 'float': 'right', 'display': 'inline-block'},
-            ),
-        ],
-            style={'display': 'inline-block', 'width': '80%', 'float': 'right', 'padding': '0px 120px'}
+        html.Div(
+            [],
+            style={'display': 'block', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}
         ),
 
         # World map
@@ -391,45 +429,80 @@ def init_dashboard(server):
                     figure=blank_fig,
                 )
             ],
-            style={'display': 'inline-block', 'width': '100%'}
+            style={'display': 'inline-block', 'width': '95%', 'position': 'relative', 'right': '100px'}
         ),
 
         # Country Summary
-        html.Div(
-            children=[
-                dcc.Graph(
-                    id="COUNTRY_SUMMARY",
-                    figure=blank_fig,
-                )
+        html.Div(children=[
+            html.Div(
+                children=[
+                    dcc.Graph(
+                        id="COUNTRY_SUMMARY",
+                        figure=blank_fig,
+                    )
+                ],
+                style={'display': 'inline-block', 'width': '60%'}
+            ),
+
+            html.Div(
+                className='home-content-right',
+                children=[
+                    html.H3(["Country Summary"])
+                ],
+                style={'width': '40%', 'display': 'inline-block'},
+            ),
             ],
-            style={'display': 'inline-block', 'width': '100%'}
+            style={'width': '80%', 'display': 'block', 'margin-right': 'auto', 'margin-left': 'auto'}
         ),
 
-        # Bar and Pie charts
-        html.Div(
-            children=[
-                html.Div([
-                    dcc.Graph(
-                        id="PIE_CHART",
-                        figure=blank_fig,
-                    )],
-                    style={'width': '49%', 'display': 'inline-block'}
+        # Pie and bar
+        html.Div([
+
+            html.Div(
+                className='home-content-left',
+                children=[
+                    html.H3(["Transaction and Commodity Summary"], style={
+                        'font-size': '6rem',
+                        'text-align': 'center'
+                    })
+                ],
+                style={'width': '100%', 'display': 'inline-block', 'margin-left': 'auto', 'margin-right': 'auto', }
+            ),
+
+            # Bar and Pie charts
+            html.Div(
+                children=[
+                    html.Div([
+                        dcc.Graph(
+                            id="PIE_CHART",
+                            figure=blank_fig,
+                            style={'height': '600px'}
+                        )],
+                        style={'width': '40%', 'display': 'inline-block', 'margin-left': '0', 'margin-right': 'auto'}
+                    ),
+                    html.Div([],
+                             style={'width': '15%', 'display': 'inline-block'}),
+                    html.Div([
+                        dcc.Graph(
+                            id="BAR_CHART",
+                            figure=blank_fig,
+                            style={'height': '600px'}
+                        )],
+                        style={'width': '40%', 'display': 'inline-block', 'margin-right': '0', 'margin-left': 'auto'}
+                    ),
+                ],
+                style={'display': 'inline-block', 'width': '100%'}
                 ),
-                html.Div([
-                    dcc.Graph(
-                        id="BAR_CHART",
-                        figure=blank_fig,
-                    )],
-                    style={'width': '49%', 'display': 'inline-block'}
-                )
             ],
-            style={'display': 'inline-block', 'width': '100%'}
+            style={'width': '80%', 'display': 'block', 'margin-right': 'auto', 'margin-left': 'auto'}
         ),
 
         # Predictor
         html.Div(
+            id='PRED_LINE',
+            className='home-content-left',
             children=[
-                html.H1("Predictions")
+                html.H3("Based on previous data, we predict the next year's {}")
             ],
             style={'display': 'inline-block', 'width': '100%'}
         ), ],

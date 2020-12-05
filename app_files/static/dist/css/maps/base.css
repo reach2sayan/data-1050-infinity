@@ -1,18 +1,3 @@
-/* =================================================================== 
- *
- *  Dazzle v1.0 Base Stylesheet
- *  04-27-2017
- *  ------------------------------------------------------------------
- *
- *  TOC:
- *  01. reset 
- *  02. basic/base setup styles
- *  03. grid
- *  04. block grids
- *  05. MISC
- *
- * =================================================================== */
-
 html {
   font-family: sans-serif;
   line-height: 1.15;
@@ -883,6 +868,3 @@ textarea {
   margin-right: auto;
   text-align: center;
 }
-
-
-/*# sourceMappingURL=base.css.map */
