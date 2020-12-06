@@ -501,7 +501,7 @@ def init_dashboard(server):
                             value=transactions[1],
                         )
                     ],
-                    style={"width": '20%', 'display': 'inline-block'},
+                    style={"width": '40%', 'display': 'inline-block'},
                 ),
                 html.Div(
                     children=[
@@ -511,7 +511,7 @@ def init_dashboard(server):
                             value=commodities[0],
                         ),
                     ],
-                    style={"width": '20%', 'display': 'inline-block'},
+                    style={"width": '40%', 'display': 'inline-block'},
                 ),
                 html.A(html.Button('Go to Main Page',),
                        href='/',
@@ -519,7 +519,7 @@ def init_dashboard(server):
                       ),
             ],
             style={'width': '100%', 'background': '#d4c98e', 'text-align': 'center',
-                   'font-size': '1.5rem', 'position': 'sticky', 'top': '0', 'padding': '5px', 'z-index': '100',
+                   'font-size': '1.5rem', 'position': 'sticky', 'top': '0', 'padding': '50px', 'z-index': '100',
                    'text-transform': 'uppercase', 'font-family': "'aqua grotesque', sans-serif"}
         ),
 
