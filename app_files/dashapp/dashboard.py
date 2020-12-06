@@ -513,9 +513,13 @@ def init_dashboard(server):
                     ],
                     style={"width": '20%', 'display': 'inline-block'},
                 ),
+                html.A(html.Button('Go to Main Page',),
+                       href='/',
+                    style={'width': '1%','background':'#d4c98e','display':'inline-block'}
+                      ),
             ],
             style={'width': '100%', 'background': '#d4c98e', 'text-align': 'center',
-                   'font-size': '1.5rem', 'position': 'sticky', 'top': '0', 'padding': '50px', 'z-index': '100',
+                   'font-size': '1.5rem', 'position': 'sticky', 'top': '0', 'padding': '5px', 'z-index': '100',
                    'text-transform': 'uppercase', 'font-family': "'aqua grotesque', sans-serif"}
         ),
 
@@ -577,7 +581,7 @@ def init_dashboard(server):
                             "For USA"
                         ],
                         style={
-                            'font-size': '6rem',
+                            'font-size': '1rem',
                             'text-align': 'center'
                         }
                     )
