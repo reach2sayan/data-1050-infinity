@@ -1,6 +1,6 @@
 # World Energy Balance Dashboard
 
-This work is done by Ben Xiong, Frances Niu, Sayan Samanta, Christina Ye for the the partial fulfillment of the the course requirements for DATA 1050 - Data Engineering Fall 2020 @ Brown University. We thank Prof. Dan Potter and the TAs for the learning resources.
+This work is done by Ben Xiong, Frances Niu, Sayan Samanta, Christina Ye for the partial fulfillment of the course requirements for DATA 1050 - Data Engineering Fall 2020 @ Brown University. We thank Prof. Dan Potter and the TAs for the learning resources.
 
 ## Summary
 

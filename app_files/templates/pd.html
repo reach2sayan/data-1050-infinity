@@ -52,11 +52,10 @@
 		    
                         <p style="text-align :justify">These two datasets are indexed in 5 broad data flows with each shares the same structure that are indexed by common dimensions (codelists) , such as units of the data, the country/area of origin and other labels necessary to identify the quantity that is being reported. For eg. the UN Energy balance database reports total energy (primarily in unit Terajoules) usage of each country among different sources (Commodities) eg. Nuclear Energy, Hydropower etc. and different avenues eg. Imports, Exports etc. In a particular set of identifiers eg. Imports of Nuclear Energy by Afghanistan are tabulated year wise. Each of those dataflows has an annual update schedule and thus it suffices to check for the recency of the database on the application start-up. Since the inconsistency of the number of dimensions and sub-dimensions for any given data point across different dataflows make it hard to enforce any efficient schema on the dataset. We chose MongoDB as our database server.</p>
 			  
-			<p style="text-align :justify">In our MongoDB collection UNSD, we have two databases, ebal and unfcc, and two indexes, referencing to area and year. The unfcc database has 814,160 documents that reveal the commodity transaction over the years. Each document has an assigned unique id, a country, a type of commodity, a type of transaction, unit of quantity, year value and a value of quantity. The unfcc database has 8,025 documents that show greenhouse gas emission over the years. Each document has an assigned unique id, a type of greenhouse gas, a country name, year value and a value of quantity. The unfcc database does not contain all the countries in the ebal database, therefore on our dashboards, you will see some countries do not contain emission data. </p>
                        
 			<h3>Web Development Process</h3>
-		      <p style="text-align :justify">
-			<ul style="padding-bottom: 30px;">
+		      <p >
+			<ul style="text-align:justify">
 			  <li> Our primary dashboard is a Dash App. We have used <a href="https://flask.palletsprojects.com/en/1.1.x/"> Flask</a> container as a web server gateway interface which serves our dashboard as a page while linking the Project Description and the Landing page.</li><br>
 			  <li> The Project Description and Landing pages are HTML pages stylised with Bootstrap stylesheets.</li>
 			  <br>
@@ -68,13 +67,15 @@
 			  <br>
 			  <li>The prediction is done using <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html"> Scikit-Learn Ridge Regression</a> model.</li>
 			</ul>
+		</p>
             <h3>Data Access</h3>
                         <p style="text-align :justify"> Our data is accessed through APIs provided by the United Nations. We have a program that checks for updates and pulls down new data when it detects that new versions have been uploaded. Upon access, the data is then preprocessed and inserted into a MongoDB cluster, which acts as the database that serves our website. </p>
                         <p style="text-align :justify"> Preprocessing of our data involves several parts. The raw data acquired from the United Nations database is in SDMX format, which essentially means every entry in a table is stored as a separate element, instead of a part of a row or column element. As a supplement to this, there are codenames for all dimensions of every value, and codelists that map codenames to their actual English meaning. During preprocessing, we pull all of this information and transform the raw data into a Pandas Dataframe object which is then stored in MongoDB’s special BSON format. </p>
                         <p style="text-align :justify"> We have two main datasets, each with a dimension that corresponds to country (area) in the world. However their codenames are slightly different, and in order to incorporate both dataframes into one idea, there will need to be a join operation, which will be made possible through decoding the country names with a Python package named country-converter. This step also assures that the new country name codes work well with future Plotly choropleth manipulations. </p>
-            <p style="text-align :justify"> Due to the size of our data, it would be inefficient to simply load everything each time an update is made on the front end. Therefore, we have an assortment of MongoDB queries for each action that specifies the exact location of the data we need, and pulls that portion down from our database. We have found that this process will be far more efficient both space and time wise.</p>
-		      </p>
- 
+		    <p style="text-align :justify"> Due to the size of our data, it would be inefficient to simply load everything each time an update is made on the front end. Therefore, we have an assortment of MongoDB queries for each action that specifies the exact location of the data we need, and pulls that portion down from our database. We have found that this process will be far more efficient both space and time wise.</p>
+		<h3> Database Use</h3>
+		<p style="text-align :justify">In our MongoDB collection UNSD, we have two databases, ebal and unfcc, and two indexes, referencing to area and year. The unfcc database has 814,160 documents that reveal the commodity transaction over the years. Each document has an assigned unique id, a country, a type of commodity, a type of transaction, unit of quantity, year value and a value of quantity. The unfcc database has 8,025 documents that show greenhouse gas emission over the years. Each document has an assigned unique id, a type of greenhouse gas, a country name, year value and a value of quantity. The unfcc database does not contain all the countries in the ebal database, therefore on our dashboards, you will see some countries do not contain emission data. </p>
+		      
                     </div> <!-- end of text-container -->
                 <!</div> <!-- end of col -->
                 <!</div> <!-- end of col -->
