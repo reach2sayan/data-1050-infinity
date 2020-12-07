@@ -6,6 +6,11 @@ This work is done by Ben Xiong, Frances Niu, Sayan Samanta, Christina Ye for the
 
 In this project, we designed a dashboard where it compares the different modes of transactions (imports, exports, consumption etc.) of energy (in units of Tera Joules) that is obtained from several commodities such as Oil Products, Natural Gas, Electricity etc. The comparison between all countries in regards to different commodities with respect to different transactions can be done at a glance via a coloured World Map. Further scrutiny provides the temporal change of the selected commodity-transaction pair between 1990 and now. The data is also supplemented with the greenhouse gas emission data of the country (if available). Further, if the requirement is to study the performance of a selected country at a given year, we provide a set of charts which exposes the preference of transactions for a particular commodity. In addition, we exhibit the preference of the transaction among different commodities. Lastly, based on the average consumption data, we also predict the next year's figures of any commodity in any transaction, based on available previous data from all countries.
 
+
+## Screencast
+
+We made a YouTube screencast where we explained the dataset, the motivation behind the project and the design and technical details involved in the making of the dashboard. You can find it here: [Infinity Screencast](https://www.youtube.com/watch?v=77tLS3_DJ8M)
+
 ## Steps to run locally
 
 #### Clone the repository using
